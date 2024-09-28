@@ -1,12 +1,13 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 
 export const signup = async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
-        if(!name || !username || !email || !password){
-            return res.status(400).json({message: "All Fields are Required"});
+        if (!name || !username || !email || !password) {
+            return res.status(400).json({ message: "All Fields are Required" });
         }
 
         const existingEmail = await User.findOne({ email });
@@ -45,13 +46,13 @@ export const signup = async (req, res) => {
 
         res.status(201).json({ message: "User Registered Successsfully" });
 
-        const profileUrl=process.env.CLIENT_URL+"/profile/"+user.username;
-        try{
+        const profileUrl = process.env.CLIENT_URL + "/profile/" + user.username;
+        try {
             await sendWelcomeEmail(user.email, user.name, profileUrl);
         }
-        catch(emailError){
+        catch (emailError) {
             console.log("Error Sending Welcome Email", emailError);
-            
+
         }
     }
     catch (error) {
