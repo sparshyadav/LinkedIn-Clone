@@ -1,10 +1,13 @@
-import User from "../models/user.model";
-import bcrypt from "bcryptjs";
+import User from "../models/user.model.js";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export const signup = async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
+        if(!name || !username || !email || !password){
+            return res.status(400).json({message: "All Fields are Required"});
+        }
 
         const existingEmail = await User.findOne({ email });
         if (existingEmail) {
