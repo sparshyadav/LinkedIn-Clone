@@ -69,19 +69,24 @@ export const login = async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: "Invalid Credentials" });
         }
+        // console.log(user);
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid Credentials" });
         }
+        // console.log(isMatch);
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "3d" });
+        // console.log(token);
         await res.cookie("jwt-linkedin", token, {
             httpOnly: true,
             maxAge: 3 * 24 * 60 * 60 * 1000,
             sameSite: "strict",
             secure: process.env.NODE_ENV === "production"
         })
+
+        res.status(200).json({ message: "User LoggedIn Successfully" });
     }
     catch (error) {
         console.error("Error in Login Controller: ", error);
