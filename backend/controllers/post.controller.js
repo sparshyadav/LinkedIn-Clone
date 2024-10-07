@@ -47,3 +47,27 @@ export const createPost = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 }
+
+export const deletePost = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.user._id;
+
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).json({ message: "Post Not Found" });
+        }
+
+        if (post.author.toString() != userId.toString()) {
+            return res.status(403).json({ message: "You are not Authorized to Delete this Post" });
+        }
+
+        await Post.findByIdAndDelete(postId);
+
+        res.status(200).json({ message: "Post Deleted Successfully" });
+    }
+    catch (error) {
+        console.error("Error in deletePost Controller: ", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
