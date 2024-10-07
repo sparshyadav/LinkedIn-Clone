@@ -32,3 +32,20 @@ export const markNotificationAsRead = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
+export const deleteNotification = async (req, res) => {
+    const notificationId = req.params.id;
+
+    try {
+        await Notification.findOneAndDelete({
+            _id: notificationId,
+            recipient: req.user._id
+        });
+
+        res.status(200).json({ message: "Notification Deleted Successfully" });
+    }
+    catch (error) {
+        console.error("Error in deleteNotification Controller: ", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
