@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const notificationSceham = new mongoose.Schema({
+const notificationSchema = new mongoose.Schema({
     recipient: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
