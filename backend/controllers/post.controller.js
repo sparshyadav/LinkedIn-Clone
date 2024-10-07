@@ -1,6 +1,7 @@
 import { json } from "express";
 import Post from "../models/post.model.js";
 import Notification from "../models/notifination.model.js";
+import { sendCommentNotificationEmail } from "../emails/emailHandlers.js";
 
 export const getFeedPosts = async (req, res) => {
     try {
@@ -133,6 +134,41 @@ export const createComment = async (req, res) => {
     }
     catch (error) {
         console.error("Error in createComment Controller: ", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+export const likePost = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.user._id;
+
+        const post = await Post.findByIdAndUpdate(postId);
+
+        if (post.likes.includes(userId)) {
+            post.likes = post.likes.filter(like => like.toString() !== userId.toString());
+        }
+        else {
+            post.likes.push(userId);
+
+            if (post.author.toString() !== userId.toString()) {
+                const newNotification = new Notification({
+                    recipient: post.author,
+                    type: "like",
+                    relatedUser: userId,
+                    relatedPost: postId
+                })
+
+                await newNotification.save();
+            }
+        }
+
+        await post.save();
+
+        res.status(200).json(post);
+    }
+    catch (error) {
+        console.error("Error in likePost Controller: ", error);
         res.status(500).json({ message: "Server Error" });
     }
 }
