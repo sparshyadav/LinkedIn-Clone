@@ -1,5 +1,6 @@
 import { json } from "express";
 import Post from "../models/post.model.js";
+import Notification from "../models/notifination.model.js";
 
 export const getFeedPosts = async (req, res) => {
     try {
@@ -88,6 +89,50 @@ export const getPostById = async (req, res) => {
     }
     catch (error) {
         console.error("Error in getPostById Controller: ", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+export const createComment = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const { content } = req.body;
+
+        const post = await Post.findByIdAndUpdate(postId,
+            {
+                $push: {
+                    comments: {
+                        user: req.user._id,
+                        content
+                    }
+                }
+            },
+            { new: true }
+        ).populate("author", "name email username headline profilePicture");
+
+        if (post.author.toString() !== req.user._id.toString()) {
+            const newNotification = new Notification({
+                recipient: post.author,
+                type: "comment",
+                relatedUser: req.user._id,
+                relatedPost: postId
+            })
+
+            await newNotification.save();
+
+            try {
+                const postUrl = process.env.CLIENT_URL + "/post/" + postId;
+                await sendCommentNotificationEmail(post.author.email, post.authro.name, req.user.name, postUrl, content);
+            }
+            catch (error) {
+                console.error("Error in sendCommentNotificationEmail Controller: ", error);
+            }
+        }
+
+        res.status(200).json(post);
+    }
+    catch (error) {
+        console.error("Error in createComment Controller: ", error);
         res.status(500).json({ message: "Server Error" });
     }
 }
