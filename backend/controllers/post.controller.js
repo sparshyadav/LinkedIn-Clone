@@ -62,12 +62,32 @@ export const deletePost = async (req, res) => {
             return res.status(403).json({ message: "You are not Authorized to Delete this Post" });
         }
 
+        if (post.image) {
+            await cloudinary.uploader.destroy(post.image.split('/').pop().split(".")[0]);
+        }
+
         await Post.findByIdAndDelete(postId);
 
         res.status(200).json({ message: "Post Deleted Successfully" });
     }
     catch (error) {
         console.error("Error in deletePost Controller: ", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+export const getPostById = async (req, res) => {
+    try {
+        const postId = req.params.id;
+
+        const post = await Post.findById(postId)
+            .populate("author", "name username profilePicture username headline")
+            .populate("comments.user", "name profilePicture username headline");
+
+        res.status(200).json(post);
+    }
+    catch (error) {
+        console.error("Error in getPostById Controller: ", error);
         res.status(500).json({ message: "Server Error" });
     }
 }
