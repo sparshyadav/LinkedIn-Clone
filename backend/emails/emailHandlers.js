@@ -21,7 +21,7 @@ export const sendWelcomeEmail = async (email, name, profileUrl) => {
 }
 
 export const sendCommentNotificationEmail = async (recipientEmail, recipientName, commenterName, postUrl, commentContent) => {
-    const recipient = [{ email }];
+    const recipient = [{ email: recipientEmail }];
 
     try {
         const response = await mailtrapClient.send({
